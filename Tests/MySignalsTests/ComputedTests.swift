@@ -35,6 +35,7 @@ final class ComputedTests: XCTestCase {
 		signal.value = 30
 		
 		// Then
+		XCTAssertEqual(fakeHandler.callCount, 1)
 		XCTAssertEqual(computed.value, 60)
 		XCTAssertEqual(fakeHandler.callCount, 2)
 	}
