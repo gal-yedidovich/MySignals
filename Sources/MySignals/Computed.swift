@@ -5,17 +5,15 @@
 //  Created by Gal Yedidovich on 11/04/2024.
 //
 
-import Foundation
-
 public final class Computed<ComputedValue: Equatable> {
 	private let handler: () -> ComputedValue
 	private var cachedValue: ComputedValue? = nil
 	private var isDirty = true
 	private var sources: [AnySource] = []
-	private var observers: Set<Context> = []
+	private var observers: Set<Observer> = []
 	
 	private lazy var observer = {
-		Context { [weak self] in
+		Observer { [weak self] in
 			guard let self else { return }
 			isDirty = true
 			for observer in observers {
@@ -34,7 +32,7 @@ public final class Computed<ComputedValue: Equatable> {
 		if isDirty {
 			cleanSources()
 			track()
-			scope(context: observer) { [weak self] in
+			scope(with: observer) { [weak self] in
 				guard let self else { return }
 				cachedValue = handler()
 			}
@@ -44,7 +42,7 @@ public final class Computed<ComputedValue: Equatable> {
 	}
 	
 	private func track() {
-		guard let observer = currentContext else { return }
+		guard let observer = currentObserver else { return }
 		observers.insert(observer)
 		observer.addSource(AnySource(source: self))
 	}
@@ -66,7 +64,7 @@ public final class Computed<ComputedValue: Equatable> {
 }
 
 extension Computed: Source {
-	func untrack(context: Context) {
+	func untrack(context: Observer) {
 		observers.remove(context)
 	}
 }

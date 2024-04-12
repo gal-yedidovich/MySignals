@@ -1,24 +1,21 @@
 //
-//  Context.swift
+//  Observer.swift
 //  
 //
 //  Created by Gal Yedidovich on 11/04/2024.
 //
 
-import Foundation
+private(set) var currentObserver: Observer? = nil
 
-
-private(set) var currentContext: Context? = nil
-
-func scope(context: Context, scopedHandler: @escaping () -> Void) {
-	let previousContext = currentContext
-	currentContext = context
+func scope(with observer: Observer, scopedHandler: @escaping () -> Void) {
+	let previousContext = currentObserver
+	currentObserver = observer
 	scopedHandler()
-	currentContext = previousContext
+	currentObserver = previousContext
 }
 
 
-public class Context: Hashable {
+public class Observer: Hashable {
 	let onNotify: () -> Void
 	let addSource: (AnySource) -> Void
 	
@@ -27,7 +24,7 @@ public class Context: Hashable {
 		self.addSource = addSource
 	}
 	
-	public static func == (lhs: Context, rhs: Context) -> Bool {
+	public static func == (lhs: Observer, rhs: Observer) -> Bool {
 		lhs === rhs
 	}
 	

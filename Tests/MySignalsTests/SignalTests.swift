@@ -1,3 +1,10 @@
+//
+//  SignalTests.swift
+//
+//
+//  Created by Gal Yedidovich on 11/04/2024.
+//
+
 import XCTest
 import MySignals
 

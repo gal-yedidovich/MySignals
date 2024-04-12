@@ -1,6 +1,12 @@
+//
+//  Signal.swift
+//
+//
+//  Created by Gal Yedidovich on 11/04/2024.
+//
 
 public final class Signal<Value: Equatable> {
-	private var observers: Set<Context> = []
+	private var observers: Set<Observer> = []
 	private var _value: Value
 	
 	public init(_ value: Value) {
@@ -24,7 +30,7 @@ public final class Signal<Value: Equatable> {
 	}
 	
 	private func track() {
-		guard let observer = currentContext else { return }
+		guard let observer = currentObserver else { return }
 		observers.insert(observer)
 		observer.addSource(AnySource(source: self))
 	}
@@ -35,24 +41,7 @@ public final class Signal<Value: Equatable> {
 }
 
 extension Signal: Source {
-	func untrack(context observer: Context) {
+	func untrack(context observer: Observer) {
 		observers.remove(observer)
 	}
-	
-}
-
-struct AnySource {
-	let source: any Source
-	
-	init(source: any Source) {
-		self.source = source
-	}
-	
-	func untrack(_ observer: Context) {
-		source.untrack(context: observer)
-	}
-}
-
-protocol Source {
-	func untrack(context: Context)
 }
