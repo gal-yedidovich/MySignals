@@ -19,8 +19,8 @@ public final class Computed<ComputedValue: Equatable> {
 			for observer in observers {
 				observer.onNotify()
 			}
-		} addSource: { [weak self] anySignal in
-			self?.sources.append(anySignal)
+		} addSource: { [weak self] source in
+			self?.sources.append(source)
 		}
 	}()
 	
@@ -29,9 +29,9 @@ public final class Computed<ComputedValue: Equatable> {
 	}
 	
 	public var value: ComputedValue {
+		track()
 		if isDirty {
 			cleanSources()
-			track()
 			scope(with: observer) { [weak self] in
 				guard let self else { return }
 				cachedValue = handler()

@@ -9,7 +9,7 @@ import Foundation
 
 class FakeComputedHandler<ComputedValue> {
 	private let _handler: () -> ComputedValue
-	var callCount = 0
+	private(set) var callCount = 0
 	
 	init(handler: @escaping () -> ComputedValue) {
 		self._handler = handler

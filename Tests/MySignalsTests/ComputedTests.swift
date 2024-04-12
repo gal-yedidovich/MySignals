@@ -86,9 +86,9 @@ final class ComputedTests: XCTestCase {
 		computed2 = nil
 		
 		// Then
-		XCTAssertEqual(signal1.observerCount, 0, "computed observer should be untracked by source 1")
-		XCTAssertEqual(signal2.observerCount, 0, "computed observer should be untracked by source 2")
-		XCTAssertEqual(computed1.observerCount, 0, "computed observer should be untracked by source 3")
+		XCTAssertEqual(signal1.observerCount, 0, "computed should untrack source 1")
+		XCTAssertEqual(signal2.observerCount, 0, "computed should untrack source 2")
+		XCTAssertEqual(computed1.observerCount, 0, "computed should untrack source 3")
 	}
 	
 	func testShouldNotTrackUnreachableSignals() {
@@ -168,5 +168,32 @@ final class ComputedTests: XCTestCase {
 		// Then
 		XCTAssertEqual(computed2.value, "Name is Bubu, is alive: false")
 		XCTAssertEqual(fakeHandler1.callCount, 1, "should not recompute 'clean' copmuted")
+	}
+	
+	func testShouldMultipleComputedTrackSameSource() {
+		// Given
+		let signal1 = Signal("Bubu is the king")
+		let fakehandler1 = FakeComputedHandler { signal1.value.count }
+		let computed1 = Computed(handler: fakehandler1.handler)
+		let computed2 = Computed { computed1.value % 10 }
+		let computed3 = Computed { computed1.value / 5 }
+		
+		XCTAssertEqual(computed2.value, 6)
+		XCTAssertEqual(computed3.value, 3)
+		XCTAssertEqual(fakehandler1.callCount, 1)
+		
+		// When
+		signal1.value = "I am groot"
+		
+		// Then
+		XCTAssertEqual(signal1.observerCount, 1)
+		XCTAssertEqual(computed1.observerCount, 2)
+		XCTAssertEqual(computed2.observerCount, 0)
+		XCTAssertEqual(computed3.observerCount, 0)
+		
+		XCTAssertEqual(computed2.value, 0)
+		XCTAssertEqual(computed3.value, 2)
+		XCTAssertEqual(fakehandler1.callCount, 2)
+		
 	}
 }
