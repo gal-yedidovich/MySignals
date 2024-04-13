@@ -7,14 +7,7 @@
 
 private(set) var currentObserver: Observer? = nil
 
-func scope(with observer: Observer, scopedHandler: @escaping () -> Void) {
-	let previousContext = currentObserver
-	currentObserver = observer
-	scopedHandler()
-	currentObserver = previousContext
-}
-
-public class Observer: Hashable {
+public class Observer {
 	private var sources: [Source] = []
 	let onNotify: () -> Void
 	
@@ -33,6 +26,15 @@ public class Observer: Hashable {
 		sources = []
 	}
 	
+	func scope<T>(handler: () -> T) -> T {
+		let previousObserver = currentObserver
+		currentObserver = self
+		defer { currentObserver = previousObserver }
+		return handler()
+	}
+}
+
+extension Observer: Hashable {
 	public static func == (lhs: Observer, rhs: Observer) -> Bool {
 		lhs === rhs
 	}

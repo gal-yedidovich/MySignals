@@ -21,10 +21,7 @@ public final class Effect {
 	
 	private func trigger() {
 		observer.removeAllSources()
-		scope(with: observer) { [weak self] in
-			guard let self else { return }
-			handler()
-		}
+		observer.scope(handler: handler)
 	}
 	
 	deinit {

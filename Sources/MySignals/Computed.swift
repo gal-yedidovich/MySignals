@@ -27,10 +27,7 @@ public final class Computed<ComputedValue: Equatable> {
 		source.track()
 		if isDirty {
 			observer.removeAllSources()
-			scope(with: observer) { [weak self] in
-				guard let self else { return }
-				cachedValue = handler()
-			}
+			cachedValue = observer.scope(handler: handler)
 			isDirty = false
 		}
 		return cachedValue!
