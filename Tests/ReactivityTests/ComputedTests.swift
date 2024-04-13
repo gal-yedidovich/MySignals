@@ -6,7 +6,7 @@
 //
 
 import XCTest
-@testable import MySignals
+@testable import Reactivity
 
 final class ComputedTests: XCTestCase {
 	func testShouldComputeSignal() {

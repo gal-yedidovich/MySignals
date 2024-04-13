@@ -6,7 +6,7 @@
 //
 
 import XCTest
-@testable import MySignals
+@testable import Reactivity
 
 class EffectTests: XCTestCase {
 	/// Allows to keep reference to effects during tests

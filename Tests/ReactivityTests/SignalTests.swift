@@ -6,7 +6,7 @@
 //
 
 import XCTest
-import MySignals
+import Reactivity
 
 final class SignalTests: XCTestCase {
 	func testShouldCreateSignal() {
