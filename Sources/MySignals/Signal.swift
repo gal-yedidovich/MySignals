@@ -22,7 +22,6 @@ public final class Signal<Value: Equatable> {
 			guard newValue != _value else { return }
 			
 			source.notifyChange()
-			
 			_value = newValue
 		}
 	}

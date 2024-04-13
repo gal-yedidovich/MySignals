@@ -5,9 +5,12 @@
 //  Created by Gal Yedidovich on 11/04/2024.
 //
 
+import Foundation
+
 private(set) var currentObserver: Observer? = nil
 
 public class Observer {
+	private let id = UUID()
 	private var sources: [Source] = []
 	let onNotify: () -> Void
 	
@@ -36,10 +39,10 @@ public class Observer {
 
 extension Observer: Hashable {
 	public static func == (lhs: Observer, rhs: Observer) -> Bool {
-		lhs === rhs
+		lhs.id == rhs.id
 	}
 	
 	public func hash(into hasher: inout Hasher) {
-		hasher.combine(Unmanaged.passUnretained(self).toOpaque())
+		hasher.combine(id)
 	}
 }
