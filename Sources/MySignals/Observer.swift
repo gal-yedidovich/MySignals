@@ -1,6 +1,6 @@
 //
 //  Observer.swift
-//  
+//
 //
 //  Created by Gal Yedidovich on 11/04/2024.
 //
@@ -14,14 +14,23 @@ func scope(with observer: Observer, scopedHandler: @escaping () -> Void) {
 	currentObserver = previousContext
 }
 
-
 public class Observer: Hashable {
+	private var sources: [Source] = []
 	let onNotify: () -> Void
-	let addSource: (AnySource) -> Void
 	
-	init(onNotify: @escaping () -> Void, addSource: @escaping (AnySource) -> Void) {
+	init(onNotify: @escaping () -> Void) {
 		self.onNotify = onNotify
-		self.addSource = addSource
+	}
+	
+	func add(source: Source) {
+		sources.append(source)
+	}
+	
+	func removeAllSources() {
+		for source in sources {
+			source.remove(observer: self)
+		}
+		sources = []
 	}
 	
 	public static func == (lhs: Observer, rhs: Observer) -> Bool {

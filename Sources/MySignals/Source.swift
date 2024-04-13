@@ -5,18 +5,26 @@
 //  Created by Gal Yedidovich on 12/04/2024.
 //
 
-protocol Source {
-	func untrack(context: Observer)
-}
+class Source {
+	private var observers: Set<Observer> = []
 
-struct AnySource {
-	let source: any Source
-	
-	init(source: any Source) {
-		self.source = source
+	func track() {
+		guard let observer = currentObserver else { return }
+		observers.insert(observer)
+		observer.add(source: self)
 	}
 	
-	func untrack(_ observer: Observer) {
-		source.untrack(context: observer)
+	func remove(observer: Observer) {
+		observers.remove(observer)
 	}
+	
+	func notifyChange() {
+		for observer in observers {
+			observer.onNotify()
+		}
+	}
+	
+#if DEBUG
+	internal var observerCount: Int { observers.count }
+#endif
 }
