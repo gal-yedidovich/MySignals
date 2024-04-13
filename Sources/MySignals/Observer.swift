@@ -30,6 +30,7 @@ public class Observer {
 	}
 	
 	func scope<T>(handler: () -> T) -> T {
+		precondition(currentObserver != self, "Infinite loop, you must not mutate values inside an observer. nor accessing computed whithin itself")
 		let previousObserver = currentObserver
 		currentObserver = self
 		defer { currentObserver = previousObserver }
