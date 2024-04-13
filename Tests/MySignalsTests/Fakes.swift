@@ -20,3 +20,17 @@ class FakeComputedHandler<ComputedValue> {
 		return _handler()
 	}
 }
+
+class FakeEffectHandler {
+	private let _handler: () -> Void
+	private(set) var callCount = 0
+	
+	init(handler: @escaping () -> Void) {
+		self._handler = handler
+	}
+	
+	func handler() {
+		callCount += 1
+		_handler()
+	}
+}

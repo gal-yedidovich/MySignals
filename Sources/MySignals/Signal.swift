@@ -30,3 +30,18 @@ public final class Signal<Value: Equatable> {
 	internal var observerCount: Int { source.observerCount }
 #endif
 }
+
+@propertyWrapper public struct Ref<T: Equatable> {
+	private let signal: Signal<T>
+	
+	public init(wrappedValue initialValue: T) {
+		self.signal = Signal(initialValue)
+	}
+	
+	public var wrappedValue: T {
+		get { signal.value }
+		set { signal.value = newValue }
+	}
+	
+	public var projectedValue: Signal<T> { signal }
+}

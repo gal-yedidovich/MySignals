@@ -11,8 +11,8 @@ import XCTest
 final class ComputedTests: XCTestCase {
 	func testShouldComputeSignal() {
 		// Given
-		let signal = Signal(5)
-		let fakeHandler = FakeComputedHandler { signal.value * 2 }
+		@Ref var number = 5
+		let fakeHandler = FakeComputedHandler { number * 2 }
 		
 		// When
 		let computed = Computed(handler: fakeHandler.handler)
@@ -26,13 +26,13 @@ final class ComputedTests: XCTestCase {
 	
 	func testShouldRecompute_whenSignalUpdates() {
 		// Given
-		let signal = Signal(5)
-		let fakeHandler = FakeComputedHandler { signal.value * 2 }
+		@Ref var number = 5
+		let fakeHandler = FakeComputedHandler { number * 2 }
 		let computed = Computed(handler: fakeHandler.handler)
 		XCTAssertEqual(computed.value, 10)
 		
 		// When
-		signal.value = 30
+		number = 30
 		
 		// Then
 		XCTAssertEqual(fakeHandler.callCount, 1)
@@ -42,8 +42,8 @@ final class ComputedTests: XCTestCase {
 	
 	func testShouldNotRecompute_whenSignalUnchanged() {
 		// Given
-		let signal = Signal("bubu")
-		let fakeHandler = FakeComputedHandler { signal.value.count }
+		@Ref var name = "bubu"
+		let fakeHandler = FakeComputedHandler { name.count }
 		
 		// When
 		let computed = Computed(handler: fakeHandler.handler)
@@ -57,13 +57,13 @@ final class ComputedTests: XCTestCase {
 	
 	func testShouldNotRecompute_whenSignalChangeRedundant() {
 		// Given
-		let signal = Signal("bubu")
-		let fakeHandler = FakeComputedHandler { "\(signal.value) \(signal.value)" }
+		@Ref var name = "bubu"
+		let fakeHandler = FakeComputedHandler { "\(name) \(name)" }
 		let computed = Computed(handler: fakeHandler.handler)
 		XCTAssertEqual(computed.value, "bubu bubu")
 		
 		// When
-		signal.value = "bubu"
+		name = "bubu"
 		
 		// Then
 		XCTAssertEqual(computed.value, "bubu bubu")
@@ -72,52 +72,52 @@ final class ComputedTests: XCTestCase {
 	
 	func testShouldUntrackSources_whenComputedDeinit() {
 		// Given
-		let signal1 = Signal(true)
-		let signal2 = Signal(1)
+		@Ref var flag = true
+		@Ref var number = 1
 		let computed1 = Computed { "Deadpool" }
-		let fakeHandler = FakeComputedHandler { "\(signal1.value) \(signal2.value) \(computed1.value)" }
+		let fakeHandler = FakeComputedHandler { "\(flag) \(number) \(computed1.value)" }
 		var computed2: Computed<String>? = Computed(handler: fakeHandler.handler)
 		XCTAssertEqual(computed2?.value, "true 1 Deadpool")
-		XCTAssertEqual(signal1.observerCount, 1, "computed should track source 1")
-		XCTAssertEqual(signal2.observerCount, 1, "computed should track source 2")
+		XCTAssertEqual($flag.observerCount, 1, "computed should track source 1")
+		XCTAssertEqual($number.observerCount, 1, "computed should track source 2")
 		XCTAssertEqual(computed1.observerCount, 1, "computed should track source 3")
 		
 		// When
 		computed2 = nil
 		
 		// Then
-		XCTAssertEqual(signal1.observerCount, 0, "computed should untrack source 1")
-		XCTAssertEqual(signal2.observerCount, 0, "computed should untrack source 2")
+		XCTAssertEqual($flag.observerCount, 0, "computed should untrack source 1")
+		XCTAssertEqual($number.observerCount, 0, "computed should untrack source 2")
 		XCTAssertEqual(computed1.observerCount, 0, "computed should untrack source 3")
 	}
 	
 	func testShouldNotTrackUnreachableSignals() {
 		// Given
-		let signal1 = Signal(true)
-		let signal2 = Signal(1)
+		@Ref var flag = true
+		@Ref var number = 1
 		let fakeHandler = FakeComputedHandler {
-			if signal1.value {
+			if flag {
 				return "bubu the king"
 			}
 			
-			return "\(signal1.value) count"
+			return "\(number) count"
 		}
 		let computed = Computed(handler: fakeHandler.handler)
 		XCTAssertEqual(computed.value, "bubu the king")
 		
 		// When
-		signal2.value = 2
+		number = 2
 		
 		// Then
 		XCTAssertEqual(computed.value, "bubu the king")
-		XCTAssertEqual(signal2.observerCount, 0, "computed should not track unreachable source 2")
+		XCTAssertEqual($number.observerCount, 0, "computed should not track unreachable source 2")
 		XCTAssertEqual(fakeHandler.callCount, 1)
 	}
 	
 	func testShouldTrackAnotherComputed() {
 		// Given
-		let signal1 = Signal(true)
-		let computed1 = Computed { "\(signal1.value)" }
+		@Ref var flag = true
+		let computed1 = Computed { "\(flag)" }
 		let fakeHandler2 = FakeComputedHandler { computed1.value.count }
 		let computed2 = Computed(handler: fakeHandler2.handler)
 		XCTAssertEqual(computed1.observerCount, 0, "first computed should not be tracked before second computed evaluates")
@@ -126,7 +126,7 @@ final class ComputedTests: XCTestCase {
 		XCTAssertEqual(fakeHandler2.callCount, 1)
 		
 		// When
-		signal1.value = false
+		flag = false
 		
 		// Then
 		XCTAssertEqual(computed2.value, 5, "")
@@ -135,16 +135,16 @@ final class ComputedTests: XCTestCase {
 	
 	func testShouldRecomputedOnce_whenMultipleSourceChange() {
 		// Given
-		let signal1 = Signal(1)
-		let signal2 = Signal(2)
-		let fakeHandler = FakeComputedHandler { signal1.value + signal2.value }
+		@Ref var number1 = 1
+		@Ref var number2 = 2
+		let fakeHandler = FakeComputedHandler { number1 + number2 }
 		let computed = Computed(handler: fakeHandler.handler)
 		XCTAssertEqual(computed.value, 3)
 		XCTAssertEqual(fakeHandler.callCount, 1)
 		
 		// When
-		signal1.value = 10
-		signal2.value = 3
+		number1 = 10
+		number2 = 3
 		
 		// Then
 		XCTAssertEqual(computed.value, 13)

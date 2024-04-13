@@ -25,13 +25,13 @@ class EffectTests: XCTestCase {
 	
 	func testShouldTriggerAnEffect_whenSourceChanges() {
 		// Given
-		let signal = Signal(1)
-		let fakeHandler = FakeEffectHandler { _ = signal.value * 2 }
+		@Ref var number = 1
+		let fakeHandler = FakeEffectHandler { _ = number }
 		let effect = Effect(handler: fakeHandler.handler)
 		effectsStore = [effect]
 		
 		// When
-		signal.value = 2
+		number = 2
 		
 		// Then
 		XCTAssertEqual(fakeHandler.callCount, 2)
@@ -39,13 +39,13 @@ class EffectTests: XCTestCase {
 	
 	func testShouldNotTrigger_whenSourceChangeRedundant() {
 		// Given
-		let signal = Signal(1)
-		let fakeHandler = FakeEffectHandler { _ = signal.value * 2 }
+		@Ref var number = 1
+		let fakeHandler = FakeEffectHandler { _ = number }
 		let effect = Effect(handler: fakeHandler.handler)
 		effectsStore = [effect]
 		
 		// When
-		signal.value = 1
+		number = 1
 		
 		// Then
 		XCTAssertEqual(fakeHandler.callCount, 1)
@@ -56,13 +56,13 @@ class EffectTests: XCTestCase {
 		struct Value: Equatable {
 			var num: Int
 		}
-		let signal = Signal(Value(num: 1))
-		let fakeHandler = FakeEffectHandler { _ = signal.value.num * 2 }
+		@Ref var value = Value(num: 1)
+		let fakeHandler = FakeEffectHandler { _ = value.num }
 		let effect = Effect(handler: fakeHandler.handler)
 		effectsStore = [effect]
 		
 		// When
-		signal.value.num = 2
+		value.num = 2
 		
 		// Then
 		XCTAssertEqual(fakeHandler.callCount, 2)
@@ -70,23 +70,23 @@ class EffectTests: XCTestCase {
 	
 	func testShouldUntrackSources_whenEffectDeinit() {
 		// Given
-		let signal1 = Signal(true)
-		let signal2 = Signal(1)
+		@Ref var flag = true
+		@Ref var number = 1
 		let computed1 = Computed { "Deadpool" }
 		let fakeHandler = FakeEffectHandler {
-			_ = "\(signal1.value) \(signal2.value) \(computed1.value)"
+			_ = "\(flag) \(number) \(computed1.value)"
 		}
 		effectsStore = [Effect(handler: fakeHandler.handler)]
-		XCTAssertEqual(signal1.observerCount, 1, "computed should track source 1")
-		XCTAssertEqual(signal2.observerCount, 1, "computed should track source 2")
+		XCTAssertEqual($flag.observerCount, 1, "computed should track source 1")
+		XCTAssertEqual($number.observerCount, 1, "computed should track source 2")
 		XCTAssertEqual(computed1.observerCount, 1, "computed should track source 3")
 		
 		// When
 		effectsStore = []
 		
 		// Then
-		XCTAssertEqual(signal1.observerCount, 0, "effect should untrack source 1")
-		XCTAssertEqual(signal2.observerCount, 0, "effect should untrack source 2")
+		XCTAssertEqual($flag.observerCount, 0, "effect should untrack source 1")
+		XCTAssertEqual($number.observerCount, 0, "effect should untrack source 2")
 		XCTAssertEqual(computed1.observerCount, 0, "effect should untrack source 3")
 	}
 	
@@ -151,19 +151,5 @@ class EffectTests: XCTestCase {
 		
 		// Then
 		XCTAssertEqual(fakeHandler.callCount, 3)
-	}
-}
-
-class FakeEffectHandler {
-	let _handler: () -> Void
-	private(set) var callCount = 0
-	
-	init(handler: @escaping () -> Void) {
-		self._handler = handler
-	}
-	
-	func handler() {
-		callCount += 1
-		_handler()
 	}
 }
