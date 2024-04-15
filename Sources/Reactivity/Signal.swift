@@ -7,7 +7,7 @@
 
 public final class Signal<Value: Equatable> {
 	private var _value: Value
-	private let source = Source()
+	internal let source = Source()
 	
 	public init(_ value: Value) {
 		self._value = value
@@ -21,8 +21,8 @@ public final class Signal<Value: Equatable> {
 		set {
 			guard newValue != _value else { return }
 			
-			source.notifyChange()
 			_value = newValue
+			source.notifyChange()
 		}
 	}
 	
