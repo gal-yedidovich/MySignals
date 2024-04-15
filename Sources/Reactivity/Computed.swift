@@ -9,7 +9,7 @@ public final class Computed<ComputedValue: Equatable> {
 	private let handler: () -> ComputedValue
 	private var cachedValue: ComputedValue? = nil
 	private var isDirty = true
-	private let source = Source()
+	internal let source = Source()
 	
 	private lazy var observer = {
 		Observer { [weak self] in

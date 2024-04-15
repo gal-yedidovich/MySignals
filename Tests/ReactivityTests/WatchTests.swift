@@ -44,6 +44,28 @@ final class WatchTests: XCTestCase {
 		XCTAssertEqual(newValue, 2)
 	}
 	
+	func testShouldWatchForComputedChanges() {
+		// Given
+		@Ref var number = 1
+		let computed = Computed { number * 2}
+		var oldValue: Int = 0
+		var newValue: Int = 0
+		let fakeWatchHandler = FakeWatchHandler<Int> { newV, oldV in
+			newValue = newV
+			oldValue = oldV
+		}
+		let watcher = Watch(computed, handler: fakeWatchHandler.handler)
+		watcherStore = [watcher]
+		
+		// When
+		number = 2
+		
+		// Then
+		XCTAssertEqual(fakeWatchHandler.callCount, 1)
+		XCTAssertEqual(oldValue, 2)
+		XCTAssertEqual(newValue, 4)
+	}
+	
 	func testShouldNotWatchForChanges_afterDeinit() {
 		// Given
 		@Ref var number = 1
