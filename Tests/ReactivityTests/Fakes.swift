@@ -34,3 +34,17 @@ class FakeEffectHandler {
 		_handler()
 	}
 }
+
+class FakeWatchHandler<WatchedValue> {
+	private let _handler: (WatchedValue, WatchedValue) -> Void
+	private(set) var callCount = 0
+	
+	init(handler: @escaping (WatchedValue, WatchedValue) -> Void) {
+		self._handler = handler
+	}
+	
+	func handler(newValue: WatchedValue, oldValue: WatchedValue) {
+		callCount += 1
+		_handler(newValue, oldValue)
+	}
+}

@@ -14,6 +14,10 @@ class Source {
 		observer.add(source: self)
 	}
 	
+	func add(observer: Observer) {
+		observers.insert(observer)
+	}
+	
 	func remove(observer: Observer) {
 		observers.remove(observer)
 	}
