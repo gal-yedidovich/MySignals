@@ -13,6 +13,7 @@ public final class Signal<Value: Equatable> {
 		self._value = value
 	}
 	
+	@MainActor
 	public var value: Value {
 		get {
 			source.track()
@@ -38,6 +39,7 @@ public final class Signal<Value: Equatable> {
 		self.signal = Signal(initialValue)
 	}
 	
+	@MainActor
 	public var wrappedValue: T {
 		get { signal.value }
 		set { signal.value = newValue }

@@ -23,6 +23,7 @@ public final class Computed<ComputedValue: Equatable> {
 		self.handler = handler
 	}
 	
+	@MainActor
 	public var value: ComputedValue {
 		source.track()
 		if isDirty {

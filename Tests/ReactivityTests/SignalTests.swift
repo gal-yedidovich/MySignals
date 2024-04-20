@@ -9,6 +9,7 @@ import XCTest
 import Reactivity
 
 final class SignalTests: XCTestCase {
+	@MainActor
 	func testShouldCreateSignal() {
 		// Given
 		
@@ -19,6 +20,7 @@ final class SignalTests: XCTestCase {
 		XCTAssertEqual(signal.value, 10)
 	}
 	
+	@MainActor
 	func testShouldModifySignal() {
 		// Given
 		let signal = Signal(10)
@@ -28,5 +30,19 @@ final class SignalTests: XCTestCase {
 		
 		// Then
 		XCTAssertEqual(signal.value, 20)
+	}
+	
+	func testShouldModifySignal() async {
+		// Given
+		let signal = Signal(10)
+		
+		// When
+		await MainActor.run {
+			signal.value = 20
+		}
+		
+		// Then
+		let value = await signal.value
+		XCTAssertEqual(value, 20)
 	}
 }
