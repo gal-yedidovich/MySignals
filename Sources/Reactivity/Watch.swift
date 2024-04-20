@@ -18,6 +18,7 @@ public class Watch<WatchedValue: Equatable> {
 		}
 	}()
 	
+	@MainActor
 	public init(_ signal: Signal<WatchedValue>, handler: @escaping (WatchedValue, WatchedValue) -> Void) {
 		self.handler = handler
 		self.currentValue = signal.value
@@ -26,6 +27,7 @@ public class Watch<WatchedValue: Equatable> {
 		signal.source.add(observer: observer)
 	}
 	
+	@MainActor
 	public init(_ computed: Computed<WatchedValue>, handler: @escaping (WatchedValue, WatchedValue) -> Void) {
 		self.handler = handler
 		self.currentValue = computed.value

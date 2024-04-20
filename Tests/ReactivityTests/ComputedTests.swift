@@ -9,6 +9,7 @@ import XCTest
 @testable import Reactivity
 
 final class ComputedTests: XCTestCase {
+	@MainActor
 	func testShouldComputeSignal() {
 		// Given
 		@Ref var number = 5
@@ -24,6 +25,7 @@ final class ComputedTests: XCTestCase {
 		XCTAssertEqual(computed.observerCount, 0)
 	}
 	
+	@MainActor
 	func testShouldRecompute_whenSignalUpdates() {
 		// Given
 		@Ref var number = 5
@@ -40,6 +42,7 @@ final class ComputedTests: XCTestCase {
 		XCTAssertEqual(fakeHandler.callCount, 2)
 	}
 	
+	@MainActor
 	func testShouldNotRecompute_whenSignalUnchanged() {
 		// Given
 		@Ref var name = "bubu"
@@ -55,6 +58,7 @@ final class ComputedTests: XCTestCase {
 		XCTAssertEqual(fakeHandler.callCount, 1)
 	}
 	
+	@MainActor
 	func testShouldNotRecompute_whenSignalChangeRedundant() {
 		// Given
 		@Ref var name = "bubu"
@@ -70,6 +74,7 @@ final class ComputedTests: XCTestCase {
 		XCTAssertEqual(fakeHandler.callCount, 1)
 	}
 	
+	@MainActor
 	func testShouldUntrackSources_whenComputedDeinit() {
 		// Given
 		@Ref var flag = true
@@ -91,6 +96,7 @@ final class ComputedTests: XCTestCase {
 		XCTAssertEqual(computed1.observerCount, 0, "computed should untrack source 3")
 	}
 	
+	@MainActor
 	func testShouldNotTrackUnreachableSignals() {
 		// Given
 		@Ref var flag = true
@@ -114,6 +120,7 @@ final class ComputedTests: XCTestCase {
 		XCTAssertEqual(fakeHandler.callCount, 1)
 	}
 	
+	@MainActor
 	func testShouldTrackAnotherComputed() {
 		// Given
 		@Ref var flag = true
@@ -133,6 +140,7 @@ final class ComputedTests: XCTestCase {
 		XCTAssertEqual(fakeHandler2.callCount, 2)
 	}
 	
+	@MainActor
 	func testShouldRecomputedOnce_whenMultipleSourceChange() {
 		// Given
 		@Ref var number1 = 1
@@ -151,6 +159,7 @@ final class ComputedTests: XCTestCase {
 		XCTAssertEqual(fakeHandler.callCount, 2)
 	}
 	
+	@MainActor
 	func testShouldShouldRecomputeOnlyDirtySources() {
 		// Given
 		let signal1 = Signal("Bubu")
@@ -170,6 +179,7 @@ final class ComputedTests: XCTestCase {
 		XCTAssertEqual(fakeHandler1.callCount, 1, "should not recompute 'clean' copmuted")
 	}
 	
+	@MainActor
 	func testShouldMultipleComputedTrackSameSource() {
 		// Given
 		let signal1 = Signal("Bubu is the king")

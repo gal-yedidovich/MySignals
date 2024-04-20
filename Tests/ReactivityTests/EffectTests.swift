@@ -51,6 +51,7 @@ class EffectTests: XCTestCase {
 		XCTAssertEqual(fakeHandler.callCount, 1)
 	}
 	
+	@MainActor
 	func testShouldTriggerDeepChanges() {
 		// Given
 		struct Value: Equatable {
@@ -68,6 +69,7 @@ class EffectTests: XCTestCase {
 		XCTAssertEqual(fakeHandler.callCount, 2)
 	}
 	
+	@MainActor
 	func testShouldUntrackSources_whenEffectDeinit() {
 		// Given
 		@Ref var flag = true
@@ -90,6 +92,7 @@ class EffectTests: XCTestCase {
 		XCTAssertEqual(computed1.observerCount, 0, "effect should untrack source 3")
 	}
 	
+	@MainActor
 	func testShouldNotTrackUnreachableSignals() {
 		// Given
 		let signal1 = Signal(true)
@@ -111,6 +114,7 @@ class EffectTests: XCTestCase {
 		XCTAssertEqual(fakeHandler.callCount, 1)
 	}
 	
+	@MainActor
 	func testShouldTrackMultipleSources() {
 		// Given
 		let signal1 = Signal(true)
@@ -133,6 +137,7 @@ class EffectTests: XCTestCase {
 		XCTAssertEqual(fakeHandler.callCount, 1)
 	}
 	
+	@MainActor
 	func testShouldMultipleEffectTrackSameSource() {
 		// Given
 		let signal1 = Signal(true)

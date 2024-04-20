@@ -11,6 +11,7 @@ import XCTest
 final class WatchTests: XCTestCase {
 	private var watcherStore: [Watch<Int>] = []
 	
+	@MainActor
 	func testShouldCreateWatch() {
 		// Given
 		@Ref var number = 1
@@ -23,6 +24,7 @@ final class WatchTests: XCTestCase {
 		XCTAssertEqual(fakeWatchHandler.callCount, 0)
 	}
 	
+	@MainActor
 	func testShouldWatchForSignalChanges() {
 		// Given
 		@Ref var number = 1
@@ -44,7 +46,7 @@ final class WatchTests: XCTestCase {
 		XCTAssertEqual(newValue, 2)
 	}
 	
-	func testShouldWatchForComputedChanges() {
+	func testShouldWatchForComputedChanges() async {
 		// Given
 		@Ref var number = 1
 		let computed = Computed { number * 2}
@@ -54,7 +56,7 @@ final class WatchTests: XCTestCase {
 			newValue = newV
 			oldValue = oldV
 		}
-		let watcher = Watch(computed, handler: fakeWatchHandler.handler)
+		let watcher = await Watch(computed, handler: fakeWatchHandler.handler)
 		watcherStore = [watcher]
 		
 		// When
@@ -66,11 +68,11 @@ final class WatchTests: XCTestCase {
 		XCTAssertEqual(newValue, 4)
 	}
 	
-	func testShouldNotWatchForChanges_afterDeinit() {
+	func testShouldNotWatchForChanges_afterDeinit() async {
 		// Given
 		@Ref var number = 1
 		let fakeWatchHandler = FakeWatchHandler<Int> { _,_ in }
-		_ = Watch($number, handler: fakeWatchHandler.handler)
+		_ = await Watch($number, handler: fakeWatchHandler.handler)
 		
 		// When
 		number = 2
