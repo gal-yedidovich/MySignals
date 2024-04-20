@@ -68,7 +68,6 @@ final class WatchTests: XCTestCase {
 		XCTAssertEqual(newValue, 4)
 	}
 	
-//	@MainActor
 	func testShouldNotWatchForChanges_afterDeinit() async {
 		// Given
 		@Ref var number = 1

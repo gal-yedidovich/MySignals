@@ -26,7 +26,7 @@ final class ComputedTests: XCTestCase {
 	}
 	
 	@MainActor
-	func testShouldRecompute_whenSignalUpdates() async {
+	func testShouldRecompute_whenSignalUpdates() {
 		// Given
 		@Ref var number = 5
 		let fakeHandler = FakeComputedHandler { number * 2 }
