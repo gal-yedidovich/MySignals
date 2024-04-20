@@ -32,7 +32,7 @@ final class SignalTests: XCTestCase {
 		XCTAssertEqual(signal.value, 20)
 	}
 	
-	func testShouldModifySignal() async {
+	func testShouldModifySignalAsync() async {
 		// Given
 		let signal = Signal(10)
 		
