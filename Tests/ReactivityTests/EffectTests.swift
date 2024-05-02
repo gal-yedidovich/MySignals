@@ -37,7 +37,7 @@ class EffectTests: XCTestCase {
 		XCTAssertEqual(fakeHandler.callCount, 2)
 	}
 	
-	func testShouldNotTrigger_whenSourceChangeRedundant() {
+	func testShouldNotTrigger_whenSignalChangeRedundant() {
 		// Given
 		@Ref var number = 1
 		let fakeHandler = FakeEffectHandler { _ = number }
@@ -46,6 +46,21 @@ class EffectTests: XCTestCase {
 		
 		// When
 		number = 1
+		
+		// Then
+		XCTAssertEqual(fakeHandler.callCount, 1)
+	}
+	
+	func testShouldNotTrigger_whenComputedChangeRedundant() {
+		// Given
+		@Ref var number = 1
+		let computed = Computed { number < 10 }
+		let fakeHandler = FakeEffectHandler { _ = computed.value }
+		let effect = Effect(handler: fakeHandler.handler)
+		effectsStore = [effect]
+		
+		// When
+		number = 5
 		
 		// Then
 		XCTAssertEqual(fakeHandler.callCount, 1)
