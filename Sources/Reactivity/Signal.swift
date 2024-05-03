@@ -35,7 +35,7 @@ public final class Signal<Value: Equatable>: ReactiveValue {
 	
 	private func notifyChange() {
 		for weakObserver in observers {
-			weakObserver.observer?.onNotify()
+			weakObserver.observer?.onNotify(sourceChanged: true)
 		}
 	}
 	
@@ -54,7 +54,7 @@ public final class Signal<Value: Equatable>: ReactiveValue {
 		observers.remove(at: index)
 	}
 
-	func wasDirty() -> Bool { true }
+	func wasDirty(observer: any Observer) -> Bool { true }
 	
 #if DEBUG
 	internal var observerCount: Int { observers.count }

@@ -34,7 +34,7 @@ public class Watch<WatchedValue: Equatable> {
 }
 
 extension Watch: Observer {
-	func onNotify() {
+	func onNotify(sourceChanged: Bool) {
 		let newValue = reactiveValue.value
 		handler(newValue, currentValue)
 		currentValue = newValue

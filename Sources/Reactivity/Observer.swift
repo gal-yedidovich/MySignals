@@ -10,7 +10,7 @@ import Foundation
 private(set) var currentObserver: (any Observer)? = nil
 
 protocol Observer: AnyObject {
-	func onNotify()
+	func onNotify(sourceChanged: Bool)
 	
 	func add(source: any ReactiveValue)
 }
@@ -29,7 +29,7 @@ protocol ReactiveValue<Value>: AnyObject {
 	associatedtype Value: Equatable
 	var value: Value { get }
 	
-	func wasDirty() -> Bool
+	func wasDirty(observer: any Observer) -> Bool
 	
 	func add(observer: any Observer)
 	

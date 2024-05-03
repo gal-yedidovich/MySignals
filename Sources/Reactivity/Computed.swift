@@ -9,6 +9,7 @@ public final class Computed<ComputedValue: Equatable> {
 	private let handler: () -> ComputedValue
 	private var cachedValue: ComputedValue? = nil
 	private var maybeDirty = true
+	private var sourcesChanged = false
 	private var sources: [any ReactiveValue] = [] //TODO: use set
 	private var observers: [WeakObserver] = [] //TODO: use set
 	
@@ -18,17 +19,15 @@ public final class Computed<ComputedValue: Equatable> {
 	
 	public var value: ComputedValue {
 		track()
-		if (maybeDirty && findDirtySource()) || cachedValue == nil {
-			removeAllSources()
-			cachedValue = scope(handler: handler)
-			maybeDirty = false
+		if cachedValue == nil || sourcesChanged || (maybeDirty && findDirtySource()) {
+			cachedValue = recompute()
 		}
 		return cachedValue!
 	}
 	
 	private func findDirtySource() -> Bool {
 		for source in sources {
-			if source.wasDirty() {
+			if source.wasDirty(observer: self) {
 				return true
 			}
 		}
@@ -40,6 +39,21 @@ public final class Computed<ComputedValue: Equatable> {
 		guard let observer = currentObserver else { return }
 		add(observer: observer)
 		observer.add(source: self)
+	}
+	
+	private func recompute() -> ComputedValue {
+		removeAllSources()
+		let value = scope(handler: handler)
+		sourcesChanged = false
+		maybeDirty = false
+		return value
+	}
+	
+	private func notifyObservers(sourceChanged: Bool, except: (any Observer)? = nil) {
+		let filtered = observers.lazy.filter { $0.observer !== except }
+		for weakObserver in filtered {
+			weakObserver.observer?.onNotify(sourceChanged: sourceChanged)
+		}
 	}
 	
 	deinit {
@@ -59,14 +73,19 @@ extension Computed: ReactiveValue {
 		observers.append(WeakObserver(observer))
 	}
 	
-	func wasDirty() -> Bool {
-		guard findDirtySource() else { return false }
+	func wasDirty(observer: any Observer) -> Bool {
+		guard maybeDirty else { return false }
+		guard sourcesChanged || findDirtySource() else { return false }
 		
 		let prev = cachedValue
-		removeAllSources()
-		cachedValue = scope(handler: handler)
-		maybeDirty = false
-		return cachedValue != prev
+		cachedValue = recompute()
+		
+		let valueChanged = cachedValue != prev
+		if valueChanged {
+			notifyObservers(sourceChanged: true, except: observer)
+		}
+		
+		return valueChanged
 	}
 	
 	func remove(observer: any Observer) {
@@ -79,11 +98,13 @@ extension Computed: ReactiveValue {
 }
 
 extension Computed: Observer {
-	func onNotify() {
+	func onNotify(sourceChanged: Bool) {
 		maybeDirty = true
-		for observer in observers {
-			observer.observer?.onNotify()
+		if sourceChanged {
+			self.sourcesChanged = true
 		}
+		
+		notifyObservers(sourceChanged: false)
 	}
 	
 	func add(source: any ReactiveValue) {

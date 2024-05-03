@@ -79,6 +79,7 @@ final class ComputedTests: XCTestCase {
 		let computed = Computed(handler: fakeMsgHandler.handler)
 		XCTAssertEqual(computed.value, "value is even")
 		XCTAssertEqual(fakeEvenHandler.callCount, 1)
+		XCTAssertEqual(fakeMsgHandler.callCount, 1)
 		
 		// When
 		number = 4

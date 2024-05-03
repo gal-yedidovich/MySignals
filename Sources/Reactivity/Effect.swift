@@ -13,7 +13,12 @@ public final class Effect {
 	
 	init(handler: @escaping () -> Void) {
 		self.handler = handler
-		onNotify()
+		trigger()
+	}
+	
+	private func trigger() {
+		removeAllSources()
+		scope(handler: handler)
 	}
 	
 	private func removeAllSources() {
@@ -29,9 +34,20 @@ public final class Effect {
 }
 
 extension Effect: Observer {
-	func onNotify() {
-		removeAllSources()
-		scope(handler: handler)
+	func onNotify(sourceChanged: Bool) {
+		guard shouldUpdate() else { return }
+		
+		trigger()
+	}
+	
+	private func shouldUpdate() -> Bool {
+		for source in sources {
+			if source.wasDirty(observer: self) {
+				return true
+			}
+		}
+		
+		return false
 	}
 	
 	func add(source: any ReactiveValue) {
