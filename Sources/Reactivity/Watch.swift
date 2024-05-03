@@ -35,9 +35,15 @@ public class Watch<WatchedValue: Equatable> {
 
 extension Watch: Observer {
 	func onNotify(sourceChanged: Bool) {
+		guard shouldTrigger() else { return }
+		
 		let newValue = reactiveValue.value
 		handler(newValue, currentValue)
 		currentValue = newValue
+	}
+	
+	private func shouldTrigger() -> Bool {
+		return reactiveValue.wasDirty(observer: self)
 	}
 	
 	func add(source: any ReactiveValue) {

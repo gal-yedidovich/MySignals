@@ -44,10 +44,24 @@ final class WatchTests: XCTestCase {
 		XCTAssertEqual(newValue, 2)
 	}
 	
+	func testShouldNotTriggerWatch_whenSignalChangeRedundant() {
+		// Given
+		@Ref var number = 1
+		let fakeWatchHandler = FakeWatchHandler<Int> { _,_ in }
+		let watcher = Watch($number, handler: fakeWatchHandler.handler)
+		watcherStore = [watcher]
+		
+		// When
+		number = 1
+		
+		// Then
+		XCTAssertEqual(fakeWatchHandler.callCount, 0)
+	}
+	
 	func testShouldWatchForComputedChanges() {
 		// Given
 		@Ref var number = 1
-		let computed = Computed { number * 2}
+		let computed = Computed { number * 2 }
 		var oldValue: Int = 0
 		var newValue: Int = 0
 		let fakeWatchHandler = FakeWatchHandler<Int> { newV, oldV in
@@ -64,6 +78,21 @@ final class WatchTests: XCTestCase {
 		XCTAssertEqual(fakeWatchHandler.callCount, 1)
 		XCTAssertEqual(oldValue, 2)
 		XCTAssertEqual(newValue, 4)
+	}
+	
+	func testShouldTriggerWatch_whenComputedChangesRedundant() {
+		// Given
+		@Ref var number = 1
+		let computed = Computed { number < 10 ? 0 : 1 }
+		let fakeWatchHandler = FakeWatchHandler<Int> { _,_ in}
+		let watcher = Watch(computed, handler: fakeWatchHandler.handler)
+		watcherStore = [watcher]
+		
+		// When
+		number = 2
+		
+		// Then
+		XCTAssertEqual(fakeWatchHandler.callCount, 0)
 	}
 	
 	func testShouldNotWatchForChanges_afterDeinit() {
