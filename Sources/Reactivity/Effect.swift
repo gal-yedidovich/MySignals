@@ -9,10 +9,7 @@ import Foundation
 
 public final class Effect {
 	private let handler: () -> Void
-	
-	private lazy var observer = {
-		Observer { [weak self] in self?.trigger() }
-	}()
+	private var sources: [any ReactiveValue] = []
 	
 	init(handler: @escaping () -> Void) {
 		self.handler = handler
@@ -20,11 +17,40 @@ public final class Effect {
 	}
 	
 	private func trigger() {
-		observer.removeAllSources()
-		observer.scope(handler: handler)
+		removeAllSources()
+		scope(handler: handler)
+	}
+	
+	private func removeAllSources() {
+		for source in sources {
+			source.remove(observer: self)
+		}
+		sources = []
 	}
 	
 	deinit {
-		observer.removeAllSources()
+		removeAllSources()
+	}
+}
+
+extension Effect: Observer {
+	func onNotify(sourceChanged: Bool) {
+		guard shouldUpdate() else { return }
+		
+		trigger()
+	}
+	
+	private func shouldUpdate() -> Bool {
+		for source in sources {
+			if source.wasDirty(observer: self) {
+				return true
+			}
+		}
+		
+		return false
+	}
+	
+	func add(source: any ReactiveValue) {
+		sources.append(source)
 	}
 }

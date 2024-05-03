@@ -7,30 +7,17 @@
 
 import Foundation
 
-private(set) var currentObserver: Observer? = nil
+private(set) var currentObserver: (any Observer)? = nil
 
-public class Observer {
-	private let id = UUID()
-	private var sources: [Source] = []
-	let onNotify: () -> Void
+protocol Observer: AnyObject {
+	func onNotify(sourceChanged: Bool)
 	
-	init(onNotify: @escaping () -> Void) {
-		self.onNotify = onNotify
-	}
-	
-	func add(source: Source) {
-		sources.append(source)
-	}
-	
-	func removeAllSources() {
-		for source in sources {
-			source.remove(observer: self)
-		}
-		sources = []
-	}
-	
-	func scope<T>(handler: () -> T) -> T {
-		precondition(currentObserver != self, "Infinite loop, you must not mutate values inside an observer. nor accessing computed whithin itself")
+	func add(source: any ReactiveValue)
+}
+
+extension Observer {
+	func scope<T>(handler: () -> T) -> T  {
+		precondition(currentObserver !== self, "Infinite loop, you must not mutate values inside an observer. nor accessing computed within itself")
 		let previousObserver = currentObserver
 		currentObserver = self
 		defer { currentObserver = previousObserver }
@@ -38,12 +25,29 @@ public class Observer {
 	}
 }
 
-extension Observer: Hashable {
-	public static func == (lhs: Observer, rhs: Observer) -> Bool {
-		lhs.id == rhs.id
-	}
+protocol ReactiveValue<Value>: AnyObject {
+	associatedtype Value: Equatable
+	var value: Value { get }
 	
-	public func hash(into hasher: inout Hasher) {
-		hasher.combine(id)
+	func wasDirty(observer: any Observer) -> Bool
+	
+	func add(observer: any Observer)
+	
+	func remove(observer: any Observer)
+}
+
+
+// - weak observer wrapper
+class WeakObserver {
+	weak var observer: (any Observer)?
+	
+	init(_ observer: any Observer) {
+		self.observer = observer
+	}
+}
+
+extension Array where Element : WeakObserver {
+	mutating func reap () {
+		self = self.filter { $0.observer != nil }
 	}
 }

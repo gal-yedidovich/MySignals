@@ -23,7 +23,7 @@ class EffectTests: XCTestCase {
 		XCTAssertEqual(fakeHandler.callCount, 1)
 	}
 	
-	func testShouldTriggerAnEffect_whenSourceChanges() {
+	func testShouldTrackSignalChanges() {
 		// Given
 		@Ref var number = 1
 		let fakeHandler = FakeEffectHandler { _ = number }
@@ -37,7 +37,22 @@ class EffectTests: XCTestCase {
 		XCTAssertEqual(fakeHandler.callCount, 2)
 	}
 	
-	func testShouldNotTrigger_whenSourceChangeRedundant() {
+	func testShouldTrackSignalAndComputedChanges() {
+		// Given
+		@Ref var number = 1
+		let double = Computed { number * 2 }
+		let fakeHandler = FakeEffectHandler { _ = double.value }
+		let effect = Effect(handler: fakeHandler.handler)
+		effectsStore = [effect]
+		
+		// When
+		number = 2
+		
+		// Then
+		XCTAssertEqual(fakeHandler.callCount, 2)
+	}
+	
+	func testShouldNotTrigger_whenSignalChangeRedundant() {
 		// Given
 		@Ref var number = 1
 		let fakeHandler = FakeEffectHandler { _ = number }
@@ -46,6 +61,21 @@ class EffectTests: XCTestCase {
 		
 		// When
 		number = 1
+		
+		// Then
+		XCTAssertEqual(fakeHandler.callCount, 1)
+	}
+	
+	func testShouldNotTrigger_whenComputedChangeRedundant() {
+		// Given
+		@Ref var number = 1
+		let computed = Computed { number < 10 }
+		let fakeHandler = FakeEffectHandler { _ = computed.value }
+		let effect = Effect(handler: fakeHandler.handler)
+		effectsStore = [effect]
+		
+		// When
+		number = 5
 		
 		// Then
 		XCTAssertEqual(fakeHandler.callCount, 1)
@@ -97,27 +127,6 @@ class EffectTests: XCTestCase {
 		let fakeHandler = FakeEffectHandler {
 			if signal1.value {
 				_ = "bubu the king"
-			}
-			
-			_ = "\(signal1.value) count"
-		}
-		let effect = Effect(handler: fakeHandler.handler)
-		effectsStore = [effect]
-		
-		// When
-		signal2.value = 2
-		
-		// Then
-		XCTAssertEqual(fakeHandler.callCount, 1)
-	}
-	
-	func testShouldTrackMultipleSources() {
-		// Given
-		let signal1 = Signal(true)
-		let signal2 = Signal(1)
-		let fakeHandler = FakeEffectHandler {
-			if signal1.value {
-				_ = "bubu the king"
 				return
 			}
 			
@@ -133,7 +142,7 @@ class EffectTests: XCTestCase {
 		XCTAssertEqual(fakeHandler.callCount, 1)
 	}
 	
-	func testShouldMultipleEffectTrackSameSource() {
+	func testShouldTrackMultipleSources() {
 		// Given
 		let signal1 = Signal(true)
 		let signal2 = Signal(1)
@@ -151,5 +160,46 @@ class EffectTests: XCTestCase {
 		
 		// Then
 		XCTAssertEqual(fakeHandler.callCount, 3)
+	}
+	
+	func testShouldMultipleEffectsTrackSameSource() {
+		// Given
+		@Ref var number = 1
+		let fakeHandler1 = FakeEffectHandler { _ = number }
+		let effect1 = Effect(handler: fakeHandler1.handler)
+		let fakeHandler2 = FakeEffectHandler { _ = number }
+		let effect2 = Effect(handler: fakeHandler2.handler)
+		let fakeHandler3 = FakeEffectHandler { _ = number }
+		let effect3 = Effect(handler: fakeHandler3.handler)
+		effectsStore = [effect1, effect2, effect3]
+		XCTAssertEqual(fakeHandler1.callCount, 1)
+		XCTAssertEqual(fakeHandler2.callCount, 1)
+		XCTAssertEqual(fakeHandler3.callCount, 1)
+		
+		// When
+		number = 2
+		
+		// Then
+		XCTAssertEqual(fakeHandler1.callCount, 2)
+		XCTAssertEqual(fakeHandler2.callCount, 2)
+		XCTAssertEqual(fakeHandler3.callCount, 2)
+	}
+	
+	func testShouldMultipleEffectsUnTrackSameSource() {
+		// Given
+		@Ref var number = 1
+		let double = Computed { number * 2 }
+		effectsStore = [
+			Effect { _ = double.value },
+			Effect { _ = double.value },
+			Effect { _ = double.value },
+		]
+		XCTAssertEqual(double.observerCount, 3)
+		
+		// When
+		effectsStore = []
+		
+		// Then
+		XCTAssertEqual(double.observerCount, 0)
 	}
 }
