@@ -161,4 +161,45 @@ class EffectTests: XCTestCase {
 		// Then
 		XCTAssertEqual(fakeHandler.callCount, 3)
 	}
+	
+	func testShouldMultipleEffectsTrackSameSource() {
+		// Given
+		@Ref var number = 1
+		let fakeHandler1 = FakeEffectHandler { _ = number }
+		let effect1 = Effect(handler: fakeHandler1.handler)
+		let fakeHandler2 = FakeEffectHandler { _ = number }
+		let effect2 = Effect(handler: fakeHandler2.handler)
+		let fakeHandler3 = FakeEffectHandler { _ = number }
+		let effect3 = Effect(handler: fakeHandler3.handler)
+		effectsStore = [effect1, effect2, effect3]
+		XCTAssertEqual(fakeHandler1.callCount, 1)
+		XCTAssertEqual(fakeHandler2.callCount, 1)
+		XCTAssertEqual(fakeHandler3.callCount, 1)
+		
+		// When
+		number = 2
+		
+		// Then
+		XCTAssertEqual(fakeHandler1.callCount, 2)
+		XCTAssertEqual(fakeHandler2.callCount, 2)
+		XCTAssertEqual(fakeHandler3.callCount, 2)
+	}
+	
+	func testShouldMultipleEffectsUnTrackSameSource() {
+		// Given
+		@Ref var number = 1
+		let double = Computed { number * 2 }
+		effectsStore = [
+			Effect { _ = double.value },
+			Effect { _ = double.value },
+			Effect { _ = double.value },
+		]
+		XCTAssertEqual(double.observerCount, 3)
+		
+		// When
+		effectsStore = []
+		
+		// Then
+		XCTAssertEqual(double.observerCount, 0)
+	}
 }

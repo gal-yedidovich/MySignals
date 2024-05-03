@@ -24,7 +24,7 @@ final class ComputedTests: XCTestCase {
 		XCTAssertEqual(computed.observerCount, 0)
 	}
 	
-	func testShouldRecompute_whenSignalUpdates() {
+	func testShouldRecompute_whenSignalChanges() {
 		// Given
 		@Ref var number = 5
 		let fakeHandler = FakeComputedHandler { number * 2 }
@@ -38,6 +38,25 @@ final class ComputedTests: XCTestCase {
 		XCTAssertEqual(fakeHandler.callCount, 1)
 		XCTAssertEqual(computed.value, 60)
 		XCTAssertEqual(fakeHandler.callCount, 2)
+	}
+	
+	func testShouldTrackAnotherComputed() {
+		// Given
+		@Ref var flag = true
+		let computed1 = Computed { "\(flag)" }
+		let fakeHandler2 = FakeComputedHandler { computed1.value.count }
+		let computed2 = Computed(handler: fakeHandler2.handler)
+		XCTAssertEqual(computed1.observerCount, 0, "first computed should not be tracked before second computed evaluates")
+		XCTAssertEqual(computed2.value, 4)
+		XCTAssertEqual(computed1.observerCount, 1, "first computed should be tracked now")
+		XCTAssertEqual(fakeHandler2.callCount, 1)
+		
+		// When
+		flag = false
+		
+		// Then
+		XCTAssertEqual(computed2.value, 5, "")
+		XCTAssertEqual(fakeHandler2.callCount, 2)
 	}
 	
 	func testShouldNotRecompute_whenSignalUnchanged() {
@@ -132,25 +151,6 @@ final class ComputedTests: XCTestCase {
 		XCTAssertEqual(computed.value, "bubu the king")
 		XCTAssertEqual($number.observerCount, 0, "computed should not track unreachable source 2")
 		XCTAssertEqual(fakeHandler.callCount, 1)
-	}
-	
-	func testShouldTrackAnotherComputed() {
-		// Given
-		@Ref var flag = true
-		let computed1 = Computed { "\(flag)" }
-		let fakeHandler2 = FakeComputedHandler { computed1.value.count }
-		let computed2 = Computed(handler: fakeHandler2.handler)
-		XCTAssertEqual(computed1.observerCount, 0, "first computed should not be tracked before second computed evaluates")
-		XCTAssertEqual(computed2.value, 4)
-		XCTAssertEqual(computed1.observerCount, 1, "first computed should be tracked now")
-		XCTAssertEqual(fakeHandler2.callCount, 1)
-		
-		// When
-		flag = false
-		
-		// Then
-		XCTAssertEqual(computed2.value, 5, "")
-		XCTAssertEqual(fakeHandler2.callCount, 2)
 	}
 	
 	func testShouldRecomputedOnce_whenMultipleSourceChange() {
