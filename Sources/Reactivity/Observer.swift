@@ -25,19 +25,8 @@ extension Observer {
 	}
 }
 
-protocol ReactiveValue<Value>: AnyObject {
-	associatedtype Value: Equatable
-	var value: Value { get }
-	
-	func wasDirty(observer: any Observer) -> Bool
-	
-	func add(observer: any Observer)
-	
-	func remove(observer: any Observer)
-}
 
-
-// - weak observer wrapper
+/// Weak observer wrapper
 class WeakObserver {
 	weak var observer: (any Observer)?
 	
