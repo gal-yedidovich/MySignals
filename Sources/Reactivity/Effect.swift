@@ -8,6 +8,7 @@
 import Foundation
 
 public final class Effect {
+	private let id = UUID()
 	private let handler: () -> Void
 	private var sources: [any ReactiveValue] = []
 	
@@ -52,5 +53,15 @@ extension Effect: Observer {
 	
 	func add(source: any ReactiveValue) {
 		sources.append(source)
+	}
+}
+
+extension Effect: Hashable {
+	public static func == (lhs: Effect, rhs: Effect) -> Bool {
+		lhs.id == rhs.id
+	}
+	
+	public func hash(into hasher: inout Hasher) {
+		hasher.combine(id)
 	}
 }

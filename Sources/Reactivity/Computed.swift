@@ -5,13 +5,16 @@
 //  Created by Gal Yedidovich on 11/04/2024.
 //
 
+import Foundation
+
 public final class Computed<ComputedValue: Equatable> {
+	private let id = UUID()
 	private let handler: () -> ComputedValue
 	private var cachedValue: ComputedValue? = nil
 	private var maybeDirty = true
 	private var sourcesChanged = false
 	private var sources: [any ReactiveValue] = [] //TODO: use set
-	private var observers: [WeakObserver] = [] //TODO: use set
+	private var observers: Set<WeakObserver> = []
 	
 	public init(handler: @escaping () -> ComputedValue) {
 		self.handler = handler
@@ -50,8 +53,11 @@ public final class Computed<ComputedValue: Equatable> {
 	}
 	
 	private func notifyObservers(sourceChanged: Bool, except: (any Observer)? = nil) {
-		let filtered = observers.lazy.filter { $0.observer !== except }
-		for weakObserver in filtered {
+		var copy = observers
+		if let weakObserver = except?.asWeak() {
+			copy.remove(weakObserver)
+		}
+		for weakObserver in copy {
 			weakObserver.observer?.onNotify(sourceChanged: sourceChanged)
 		}
 	}
@@ -67,10 +73,7 @@ public final class Computed<ComputedValue: Equatable> {
 
 extension Computed: ReactiveValue {
 	func add(observer: any Observer) {
-		if observers.contains(where: { $0 === observer }) {
-			return
-		}
-		observers.append(WeakObserver(observer))
+		observers.insert(observer.asWeak())
 	}
 	
 	func wasDirty(observer: any Observer) -> Bool {
@@ -90,10 +93,7 @@ extension Computed: ReactiveValue {
 	
 	func remove(observer: any Observer) {
 		observers.reap()
-		guard let index = observers.firstIndex(where: { $0 === observer }) else {
-			return
-		}
-		observers.remove(at: index)
+		observers.remove(WeakObserver(observer))
 	}
 }
 
@@ -116,5 +116,15 @@ extension Computed: Observer {
 			source.remove(observer: self)
 		}
 		sources = []
+	}
+}
+
+extension Computed: Hashable {
+	public static func == (lhs: Computed<ComputedValue>, rhs: Computed<ComputedValue>) -> Bool {
+		lhs.id == rhs.id
+	}
+	
+	public func hash(into hasher: inout Hasher) {
+		hasher.combine(id)
 	}
 }

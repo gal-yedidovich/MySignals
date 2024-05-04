@@ -9,7 +9,7 @@ import Foundation
 
 private(set) var currentObserver: (any Observer)? = nil
 
-protocol Observer: AnyObject {
+protocol Observer: AnyObject, Hashable {
 	func onNotify(sourceChanged: Bool)
 	
 	func add(source: any ReactiveValue)
@@ -23,19 +23,36 @@ extension Observer {
 		defer { currentObserver = previousObserver }
 		return handler()
 	}
+	
+	fileprivate func asAnyHashable() -> AnyHashable {
+		AnyHashable(self)
+	}
+	
+	func asWeak() -> WeakObserver {
+		WeakObserver(self)
+	}
 }
 
 
 /// Weak observer wrapper
-class WeakObserver {
+struct WeakObserver: Hashable {
 	weak var observer: (any Observer)?
 	
 	init(_ observer: any Observer) {
 		self.observer = observer
 	}
+	
+	static func == (lhs: WeakObserver, rhs: WeakObserver) -> Bool {
+		lhs.observer?.asAnyHashable() == rhs.observer?.asAnyHashable()
+	}
+	
+	func hash(into hasher: inout Hasher) {
+		hasher.combine(observer?.asAnyHashable())
+	}
+	
 }
 
-extension Array where Element : WeakObserver {
+extension Set where Element == WeakObserver {
 	mutating func reap () {
 		self = self.filter { $0.observer != nil }
 	}

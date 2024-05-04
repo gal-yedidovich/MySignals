@@ -8,6 +8,7 @@
 import Foundation
 
 public class Watch<WatchedValue: Equatable> {
+	private let id = UUID()
 	private let handler: (WatchedValue, WatchedValue) -> Void
 	private var currentValue: WatchedValue
 	private let reactiveValue: any ReactiveValue<WatchedValue>
@@ -47,5 +48,15 @@ extension Watch: Observer {
 	}
 	
 	func add(source: any ReactiveValue) {
+	}
+}
+
+extension Watch: Hashable {
+	public static func == (lhs: Watch<WatchedValue>, rhs: Watch<WatchedValue>) -> Bool {
+		lhs.id == rhs.id
+	}
+	
+	public func hash(into hasher: inout Hasher) {
+		hasher.combine(id)
 	}
 }

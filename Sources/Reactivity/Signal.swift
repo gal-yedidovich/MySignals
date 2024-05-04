@@ -8,7 +8,7 @@
 public final class Signal<Value: Equatable>: ReactiveValue {
 	private var _value: Value
 	
-	private var observers: [WeakObserver] = [] // TODO: use a set for uniqueness
+	private var observers: Set<WeakObserver> = []
 	
 	public init(_ value: Value) {
 		self._value = value
@@ -40,18 +40,12 @@ public final class Signal<Value: Equatable>: ReactiveValue {
 	}
 	
 	func add(observer: any Observer) {
-		if observers.contains(where: { $0.observer === observer }) {
-			return
-		}
-		observers.append(WeakObserver(observer))
+		observers.insert(observer.asWeak())
 	}
 	
 	func remove(observer: any Observer) {
 		observers.reap()
-		guard let index = observers.firstIndex(where: { $0.observer === observer }) else {
-			return
-		}
-		observers.remove(at: index)
+		observers.remove(observer.asWeak())
 	}
 
 	func wasDirty(observer: any Observer) -> Bool { true }
