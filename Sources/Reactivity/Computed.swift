@@ -11,8 +11,7 @@ public final class Computed<ComputedValue: Hashable> {
 	private let id = UUID()
 	private let handler: () -> ComputedValue
 	private var cachedValue: ComputedValue? = nil
-	private var maybeDirty = true
-	private var sourcesChanged = false
+	private var status: Status = .maybeDirty
 	private var sources: Set<AnyReactiveValue> = []
 	private var observers: Set<WeakObserver> = []
 	
@@ -22,10 +21,18 @@ public final class Computed<ComputedValue: Hashable> {
 	
 	public var value: ComputedValue {
 		track()
-		if cachedValue == nil || sourcesChanged || (maybeDirty && findDirtySource()) {
+		if cachedValue == nil || isNotClean {
 			cachedValue = recompute()
 		}
 		return cachedValue!
+	}
+	
+	private var isNotClean: Bool {
+		switch status {
+		case .clean: return false
+		case .sourcesChanged: return true
+		case .maybeDirty: return findDirtySource()
+		}
 	}
 	
 	private func findDirtySource() -> Bool {
@@ -47,8 +54,7 @@ public final class Computed<ComputedValue: Hashable> {
 	private func recompute() -> ComputedValue {
 		removeAllSources()
 		let value = scope(handler: handler)
-		sourcesChanged = false
-		maybeDirty = false
+		status = .clean
 		return value
 	}
 	
@@ -77,8 +83,7 @@ extension Computed: ReactiveValue {
 	}
 	
 	func wasDirty(observer: any Observer) -> Bool {
-		guard maybeDirty else { return false }
-		guard sourcesChanged || findDirtySource() else { return false }
+		guard isNotClean else { return false }
 		
 		let prev = cachedValue
 		cachedValue = recompute()
@@ -99,9 +104,8 @@ extension Computed: ReactiveValue {
 
 extension Computed: Observer {
 	func onNotify(sourceChanged: Bool) {
-		maybeDirty = true
-		if sourceChanged {
-			self.sourcesChanged = true
+		if status != .sourcesChanged {
+			status = sourceChanged ? .sourcesChanged : .maybeDirty
 		}
 		
 		notifyObservers(sourceChanged: false)
@@ -116,6 +120,14 @@ extension Computed: Observer {
 			source.reactiveValue.remove(observer: self)
 		}
 		sources = []
+	}
+}
+
+private extension Computed {
+	enum Status {
+		case clean
+		case sourcesChanged
+		case maybeDirty
 	}
 }
 
