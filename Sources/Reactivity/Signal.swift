@@ -5,7 +5,7 @@
 //  Created by Gal Yedidovich on 11/04/2024.
 //
 
-public final class Signal<Value: Equatable>: ReactiveValue {
+public final class Signal<Value: Hashable>: ReactiveValue {
 	private var _value: Value
 	
 	private var observers: Set<WeakObserver> = []
@@ -55,7 +55,17 @@ public final class Signal<Value: Equatable>: ReactiveValue {
 #endif
 }
 
-@propertyWrapper public struct Ref<T: Equatable> {
+extension Signal: Hashable {
+	public static func == (lhs: Signal<Value>, rhs: Signal<Value>) -> Bool {
+		lhs._value == rhs._value
+	}
+	
+	public func hash(into hasher: inout Hasher) {
+		hasher.combine(_value)
+	}
+}
+
+@propertyWrapper public struct Ref<T: Hashable> {
 	private let signal: Signal<T>
 	
 	public init(wrappedValue initialValue: T) {

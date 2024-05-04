@@ -7,13 +7,13 @@
 
 import Foundation
 
-public final class Computed<ComputedValue: Equatable> {
+public final class Computed<ComputedValue: Hashable> {
 	private let id = UUID()
 	private let handler: () -> ComputedValue
 	private var cachedValue: ComputedValue? = nil
 	private var maybeDirty = true
 	private var sourcesChanged = false
-	private var sources: [any ReactiveValue] = [] //TODO: use set
+	private var sources: Set<AnyReactiveValue> = []
 	private var observers: Set<WeakObserver> = []
 	
 	public init(handler: @escaping () -> ComputedValue) {
@@ -30,7 +30,7 @@ public final class Computed<ComputedValue: Equatable> {
 	
 	private func findDirtySource() -> Bool {
 		for source in sources {
-			if source.wasDirty(observer: self) {
+			if source.reactiveValue.wasDirty(observer: self) {
 				return true
 			}
 		}
@@ -108,12 +108,12 @@ extension Computed: Observer {
 	}
 	
 	func add(source: any ReactiveValue) {
-		sources.append(source)
+		sources.insert(AnyReactiveValue(reactiveValue: source))
 	}
 	
 	private func removeAllSources() {
 		for source in sources {
-			source.remove(observer: self)
+			source.reactiveValue.remove(observer: self)
 		}
 		sources = []
 	}

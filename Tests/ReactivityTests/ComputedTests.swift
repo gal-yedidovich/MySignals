@@ -27,7 +27,7 @@ final class ComputedTests: XCTestCase {
 	func testShouldRecompute_whenSignalChanges() {
 		// Given
 		@Ref var number = 5
-		let fakeHandler = FakeComputedHandler { number * 2 }
+		let fakeHandler = FakeComputedHandler { number + number }
 		let computed = Computed(handler: fakeHandler.handler)
 		XCTAssertEqual(computed.value, 10)
 		

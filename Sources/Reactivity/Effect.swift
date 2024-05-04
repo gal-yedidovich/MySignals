@@ -10,7 +10,7 @@ import Foundation
 public final class Effect {
 	private let id = UUID()
 	private let handler: () -> Void
-	private var sources: [any ReactiveValue] = []
+	private var sources: Set<AnyReactiveValue> = []
 	
 	init(handler: @escaping () -> Void) {
 		self.handler = handler
@@ -24,7 +24,7 @@ public final class Effect {
 	
 	private func removeAllSources() {
 		for source in sources {
-			source.remove(observer: self)
+			source.reactiveValue.remove(observer: self)
 		}
 		sources = []
 	}
@@ -43,7 +43,7 @@ extension Effect: Observer {
 	
 	private func shouldUpdate() -> Bool {
 		for source in sources {
-			if source.wasDirty(observer: self) {
+			if source.reactiveValue.wasDirty(observer: self) {
 				return true
 			}
 		}
@@ -52,7 +52,7 @@ extension Effect: Observer {
 	}
 	
 	func add(source: any ReactiveValue) {
-		sources.append(source)
+		sources.insert(AnyReactiveValue(reactiveValue: source))
 	}
 }
 

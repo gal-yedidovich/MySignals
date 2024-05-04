@@ -83,7 +83,7 @@ class EffectTests: XCTestCase {
 	
 	func testShouldTriggerDeepChanges() {
 		// Given
-		struct Value: Equatable {
+		struct Value: Hashable {
 			var num: Int
 		}
 		@Ref var value = Value(num: 1)

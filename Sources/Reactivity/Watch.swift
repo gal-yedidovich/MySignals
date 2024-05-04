@@ -7,7 +7,7 @@
 
 import Foundation
 
-public class Watch<WatchedValue: Equatable> {
+public class Watch<WatchedValue: Hashable> {
 	private let id = UUID()
 	private let handler: (WatchedValue, WatchedValue) -> Void
 	private var currentValue: WatchedValue
