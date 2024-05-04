@@ -11,7 +11,7 @@ public final class Computed<ComputedValue: Hashable> {
 	private let id = UUID()
 	private let handler: () -> ComputedValue
 	private var cachedValue: ComputedValue? = nil
-	private var status: Status = .maybeDirty
+	private var status: Status = .sourcesChanged
 	private var sources: Set<AnyReactiveValue> = []
 	private var observers: Set<WeakObserver> = []
 	
@@ -21,7 +21,7 @@ public final class Computed<ComputedValue: Hashable> {
 	
 	public var value: ComputedValue {
 		track()
-		if cachedValue == nil || isNotClean {
+		if isNotClean {
 			cachedValue = recompute()
 		}
 		return cachedValue!
@@ -98,7 +98,7 @@ extension Computed: ReactiveValue {
 	
 	func remove(observer: any Observer) {
 		observers.reap()
-		observers.remove(WeakObserver(observer))
+		observers.remove(observer.asWeak())
 	}
 }
 
