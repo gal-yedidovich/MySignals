@@ -12,20 +12,20 @@ public class Watch<WatchedValue: Equatable> {
 	private var currentValue: WatchedValue
 	private let reactiveValue: any ReactiveValue<WatchedValue>
 	
-	public init(_ signal: Signal<WatchedValue>, handler: @escaping (WatchedValue, WatchedValue) -> Void) {
-		self.handler = handler
-		self.currentValue = signal.value
-		self.reactiveValue = signal
-		
-		signal.add(observer: self)
+	public convenience init(_ signal: Signal<WatchedValue>, handler: @escaping (WatchedValue, WatchedValue) -> Void) {
+		self.init(value: signal, handler: handler)
 	}
 	
-	public init(_ computed: Computed<WatchedValue>, handler: @escaping (WatchedValue, WatchedValue) -> Void) {
+	public convenience init(_ computed: Computed<WatchedValue>, handler: @escaping (WatchedValue, WatchedValue) -> Void) {
+		self.init(value: computed, handler: handler)
+	}
+	
+	private init(value reactiveValue: any ReactiveValue<WatchedValue>, handler: @escaping (WatchedValue, WatchedValue) -> Void) {
 		self.handler = handler
-		self.currentValue = computed.value
-		self.reactiveValue = computed
+		self.currentValue = reactiveValue.value
+		self.reactiveValue = reactiveValue
 		
-		computed.add(observer: self)
+		reactiveValue.add(observer: self)
 	}
 	
 	deinit {
