@@ -36,7 +36,7 @@ public final class Effect {
 
 extension Effect: Observer {
 	func onNotify(sourceChanged: Bool) {
-		guard shouldUpdate() else { return }
+		guard sourceChanged || shouldUpdate() else { return }
 		
 		trigger()
 	}

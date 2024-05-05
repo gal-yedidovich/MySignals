@@ -165,11 +165,12 @@ class EffectTests: XCTestCase {
 	func testShouldMultipleEffectsTrackSameSource() {
 		// Given
 		@Ref var number = 1
-		let fakeHandler1 = FakeEffectHandler { _ = number }
+		@Derived(handler: {number + number }) var double: Int
+		let fakeHandler1 = FakeEffectHandler { _ = double }
 		let effect1 = Effect(handler: fakeHandler1.handler)
-		let fakeHandler2 = FakeEffectHandler { _ = number }
+		let fakeHandler2 = FakeEffectHandler { _ = double }
 		let effect2 = Effect(handler: fakeHandler2.handler)
-		let fakeHandler3 = FakeEffectHandler { _ = number }
+		let fakeHandler3 = FakeEffectHandler { _ = double }
 		let effect3 = Effect(handler: fakeHandler3.handler)
 		effectsStore = [effect1, effect2, effect3]
 		XCTAssertEqual(fakeHandler1.callCount, 1)

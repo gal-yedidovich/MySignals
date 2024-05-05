@@ -133,3 +133,16 @@ private extension Computed {
 		case maybeDirty
 	}
 }
+
+@propertyWrapper public struct Derived<T: Hashable> {
+	private let computed: Computed<T>
+	
+	public init(handler: @escaping () -> T) {
+		self.computed = Computed(handler: handler)
+	}
+	
+	public var wrappedValue: T { computed.value }
+	
+	public var projectedValue: Computed<T> { computed }
+}
+

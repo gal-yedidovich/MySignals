@@ -78,13 +78,14 @@ final class ComputedTests: XCTestCase {
 		@Ref var name = "bubu"
 		let fakeHandler = FakeComputedHandler { name.count }
 		
+		
 		// When
-		let computed = Computed(handler: fakeHandler.handler)
+		@Derived(handler: fakeHandler.handler) var computed: Int
 		
 		// Then
-		XCTAssertEqual(computed.value, 4)
-		XCTAssertEqual(computed.value, 4)
-		XCTAssertEqual(computed.value, 4)
+		XCTAssertEqual(computed, 4)
+		XCTAssertEqual(computed, 4)
+		XCTAssertEqual(computed, 4)
 		XCTAssertEqual(fakeHandler.callCount, 1)
 	}
 	
@@ -92,14 +93,14 @@ final class ComputedTests: XCTestCase {
 		// Given
 		@Ref var name = "bubu"
 		let fakeHandler = FakeComputedHandler { "\(name) \(name)" }
-		let computed = Computed(handler: fakeHandler.handler)
-		XCTAssertEqual(computed.value, "bubu bubu")
+		@Derived(handler: fakeHandler.handler) var computed: String
+		XCTAssertEqual(computed, "bubu bubu")
 		
 		// When
 		name = "bubu"
 		
 		// Then
-		XCTAssertEqual(computed.value, "bubu bubu")
+		XCTAssertEqual(computed, "bubu bubu")
 		XCTAssertEqual(fakeHandler.callCount, 1)
 	}
 	
@@ -107,10 +108,10 @@ final class ComputedTests: XCTestCase {
 		// Given
 		@Ref var number = 2
 		let fakeEvenHandler = FakeComputedHandler { number % 2 == 0 }
-		let evenComputed = Computed(handler: fakeEvenHandler.handler)
-		let fakeMsgHandler = FakeComputedHandler { "value is \(evenComputed.value ? "even" : "odd")" }
-		let computed = Computed(handler: fakeMsgHandler.handler)
-		XCTAssertEqual(computed.value, "value is even")
+		@Derived(handler: fakeEvenHandler.handler) var isEven: Bool
+		let fakeMsgHandler = FakeComputedHandler { "value is \(isEven ? "even" : "odd")" }
+		@Derived(handler: fakeMsgHandler.handler) var computed: String
+		XCTAssertEqual(computed, "value is even")
 		XCTAssertEqual(fakeEvenHandler.callCount, 1)
 		XCTAssertEqual(fakeMsgHandler.callCount, 1)
 		
@@ -118,7 +119,7 @@ final class ComputedTests: XCTestCase {
 		number = 4
 		
 		// Then
-		XCTAssertEqual(computed.value, "value is even")
+		XCTAssertEqual(computed, "value is even")
 		XCTAssertEqual(fakeEvenHandler.callCount, 2)
 		XCTAssertEqual(fakeMsgHandler.callCount, 1)
 	}
@@ -127,13 +128,13 @@ final class ComputedTests: XCTestCase {
 		// Given
 		@Ref var flag = true
 		@Ref var number = 1
-		let computed1 = Computed { "Deadpool" }
-		let fakeHandler = FakeComputedHandler { "\(flag) \(number) \(computed1.value)" }
+		@Derived(handler: { "Deadpool" }) var computed1: String
+		let fakeHandler = FakeComputedHandler { "\(flag) \(number) \(computed1)" }
 		var computed2: Computed<String>? = Computed(handler: fakeHandler.handler)
 		XCTAssertEqual(computed2?.value, "true 1 Deadpool")
 		XCTAssertEqual($flag.observerCount, 1, "computed should track source 1")
 		XCTAssertEqual($number.observerCount, 1, "computed should track source 2")
-		XCTAssertEqual(computed1.observerCount, 1, "computed should track source 3")
+		XCTAssertEqual($computed1.observerCount, 1, "computed should track source 3")
 		
 		// When
 		computed2 = nil
@@ -141,7 +142,7 @@ final class ComputedTests: XCTestCase {
 		// Then
 		XCTAssertEqual($flag.observerCount, 0, "computed should untrack source 1")
 		XCTAssertEqual($number.observerCount, 0, "computed should untrack source 2")
-		XCTAssertEqual(computed1.observerCount, 0, "computed should untrack source 3")
+		XCTAssertEqual($computed1.observerCount, 0, "computed should untrack source 3")
 	}
 	
 	func testShouldNotTrackUnreachableSignals() {
