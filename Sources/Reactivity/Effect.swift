@@ -42,13 +42,7 @@ extension Effect: Observer {
 	}
 	
 	private func shouldUpdate() -> Bool {
-		for source in sources {
-			if source.reactiveValue.wasDirty(observer: self) {
-				return true
-			}
-		}
-		
-		return false
+		sources.contains { $0.reactiveValue.wasDirty(observer: self) }
 	}
 	
 	func add(source: any ReactiveValue) {
