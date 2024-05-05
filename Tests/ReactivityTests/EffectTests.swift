@@ -189,18 +189,19 @@ class EffectTests: XCTestCase {
 	func testShouldMultipleEffectsUnTrackSameSource() {
 		// Given
 		@Ref var number = 1
-		let double = Computed { number * 2 }
+		let computed = Computed { number * 2 }
+		@Derived(computed: computed) var double: Int
 		effectsStore = [
-			Effect { _ = double.value },
-			Effect { _ = double.value },
-			Effect { _ = double.value },
+			Effect { _ = double },
+			Effect { _ = double },
+			Effect { _ = double },
 		]
-		XCTAssertEqual(double.observerCount, 3)
+		XCTAssertEqual($double.observerCount, 3)
 		
 		// When
 		effectsStore = []
 		
 		// Then
-		XCTAssertEqual(double.observerCount, 0)
+		XCTAssertEqual($double.observerCount, 0)
 	}
 }

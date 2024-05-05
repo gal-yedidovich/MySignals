@@ -141,6 +141,10 @@ private extension Computed {
 		self.computed = Computed(handler: handler)
 	}
 	
+	public init(computed: Computed<T>) {
+		self.computed = computed
+	}
+	
 	public var wrappedValue: T { computed.value }
 	
 	public var projectedValue: Computed<T> { computed }
