@@ -9,6 +9,20 @@ import XCTest
 @testable import Reactivity
 
 final class ComputedTests: XCTestCase {
+	func testShouldComputeConstant() {
+		// Given
+		let fakeHandler = FakeComputedHandler { 10 + 10 }
+		
+		// When
+		let computed = Computed(handler: fakeHandler.handler)
+		
+		// Then
+		XCTAssertEqual(fakeHandler.callCount, 0)
+		XCTAssertEqual(computed.value, 20)
+		XCTAssertEqual(fakeHandler.callCount, 1)
+		XCTAssertEqual(computed.observerCount, 0)
+	}
+	
 	func testShouldComputeSignal() {
 		// Given
 		@Ref var number = 5

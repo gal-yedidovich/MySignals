@@ -21,13 +21,13 @@ public final class Computed<ComputedValue: Hashable> {
 	
 	public var value: ComputedValue {
 		track()
-		if isNotClean {
+		if shouldRecompute {
 			cachedValue = recompute()
 		}
 		return cachedValue!
 	}
 	
-	private var isNotClean: Bool {
+	private var shouldRecompute: Bool {
 		switch status {
 		case .clean: return false
 		case .sourcesChanged: return true
@@ -36,13 +36,7 @@ public final class Computed<ComputedValue: Hashable> {
 	}
 	
 	private func findDirtySource() -> Bool {
-		for source in sources {
-			if source.reactiveValue.wasDirty(observer: self) {
-				return true
-			}
-		}
-		
-		return false
+		sources.contains { $0.reactiveValue.wasDirty(observer: self) }
 	}
 	
 	private func track() {
@@ -53,15 +47,14 @@ public final class Computed<ComputedValue: Hashable> {
 	
 	private func recompute() -> ComputedValue {
 		removeAllSources()
-		let value = scope(handler: handler)
-		status = .clean
-		return value
+		defer { status = .clean }
+		return scope(handler: handler)
 	}
 	
-	private func notifyObservers(sourceChanged: Bool, except: (any Observer)? = nil) {
+	private func notifyObservers(sourceChanged: Bool, except sender: (any Observer)? = nil) {
 		var copy = observers
-		if let weakObserver = except?.asWeak() {
-			copy.remove(weakObserver)
+		if let sender {
+			copy.remove(sender.asWeak())
 		}
 		for weakObserver in copy {
 			weakObserver.observer?.onNotify(sourceChanged: sourceChanged)
@@ -83,7 +76,7 @@ extension Computed: ReactiveValue {
 	}
 	
 	func wasDirty(observer: any Observer) -> Bool {
-		guard isNotClean else { return false }
+		guard shouldRecompute else { return false }
 		
 		let prev = cachedValue
 		cachedValue = recompute()
@@ -123,14 +116,6 @@ extension Computed: Observer {
 	}
 }
 
-private extension Computed {
-	enum Status {
-		case clean
-		case sourcesChanged
-		case maybeDirty
-	}
-}
-
 extension Computed: Hashable {
 	public static func == (lhs: Computed<ComputedValue>, rhs: Computed<ComputedValue>) -> Bool {
 		lhs.id == rhs.id
@@ -138,5 +123,13 @@ extension Computed: Hashable {
 	
 	public func hash(into hasher: inout Hasher) {
 		hasher.combine(id)
+	}
+}
+
+private extension Computed {
+	enum Status {
+		case clean
+		case sourcesChanged
+		case maybeDirty
 	}
 }

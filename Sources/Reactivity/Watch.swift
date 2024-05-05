@@ -48,6 +48,7 @@ extension Watch: Observer {
 	}
 	
 	func add(source: any ReactiveValue) {
+		//Ignore, Watch observe only explicit source from initializer
 	}
 }
 
