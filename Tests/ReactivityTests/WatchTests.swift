@@ -61,14 +61,14 @@ final class WatchTests: XCTestCase {
 	func testShouldWatchForComputedChanges() {
 		// Given
 		@Ref var number = 1
-		let computed = Computed { number * 2 }
+		@Derived var computed = number * 2
 		var oldValue: Int = 0
 		var newValue: Int = 0
 		let fakeWatchHandler = FakeWatchHandler<Int> { newV, oldV in
 			newValue = newV
 			oldValue = oldV
 		}
-		let watcher = Watch(computed, handler: fakeWatchHandler.handler)
+		let watcher = Watch($computed, handler: fakeWatchHandler.handler)
 		watcherStore = [watcher]
 		
 		// When
@@ -83,9 +83,9 @@ final class WatchTests: XCTestCase {
 	func testShouldTriggerWatch_whenComputedChangesRedundant() {
 		// Given
 		@Ref var number = 1
-		let computed = Computed { number < 10 ? 0 : 1 }
-		let fakeWatchHandler = FakeWatchHandler<Int> { _,_ in}
-		let watcher = Watch(computed, handler: fakeWatchHandler.handler)
+		@Derived var computed = number < 10 ? 0 : 1
+		let fakeWatchHandler = FakeWatchHandler<Int> { _,_ in }
+		let watcher = Watch($computed, handler: fakeWatchHandler.handler)
 		watcherStore = [watcher]
 		
 		// When

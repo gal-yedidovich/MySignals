@@ -21,12 +21,13 @@ final class ComputedTests: XCTestCase {
 		XCTAssertEqual(computed.value, 20)
 		XCTAssertEqual(fakeHandler.callCount, 1)
 		XCTAssertEqual(computed.observerCount, 0)
+		XCTAssertEqual(computed.sourceCount, 0)
 	}
 	
 	func testShouldComputeSignal() {
 		// Given
 		@Ref var number = 5
-		let fakeHandler = FakeComputedHandler { number * 2 }
+		let fakeHandler = FakeComputedHandler { number + number }
 		
 		// When
 		let computed = Computed(handler: fakeHandler.handler)
@@ -36,6 +37,7 @@ final class ComputedTests: XCTestCase {
 		XCTAssertEqual(computed.value, 10)
 		XCTAssertEqual(fakeHandler.callCount, 1)
 		XCTAssertEqual(computed.observerCount, 0)
+		XCTAssertEqual(computed.sourceCount, 1)
 	}
 	
 	func testShouldRecompute_whenSignalChanges() {
@@ -128,7 +130,7 @@ final class ComputedTests: XCTestCase {
 		// Given
 		@Ref var flag = true
 		@Ref var number = 1
-		@Derived(handler: { "Deadpool" }) var computed1: String
+		@Derived var computed1 = "Deadpool"
 		let fakeHandler = FakeComputedHandler { "\(flag) \(number) \(computed1)" }
 		var computed2: Computed<String>? = Computed(handler: fakeHandler.handler)
 		XCTAssertEqual(computed2?.value, "true 1 Deadpool")
@@ -173,8 +175,8 @@ final class ComputedTests: XCTestCase {
 		@Ref var number1 = 1
 		@Ref var number2 = 2
 		let fakeHandler = FakeComputedHandler { number1 + number2 }
-		let computed = Computed(handler: fakeHandler.handler)
-		XCTAssertEqual(computed.value, 3)
+		@Derived var sum: Int = fakeHandler.handler()
+		XCTAssertEqual(sum, 3)
 		XCTAssertEqual(fakeHandler.callCount, 1)
 		
 		// When
@@ -182,7 +184,7 @@ final class ComputedTests: XCTestCase {
 		number2 = 3
 		
 		// Then
-		XCTAssertEqual(computed.value, 13)
+		XCTAssertEqual(sum, 13)
 		XCTAssertEqual(fakeHandler.callCount, 2)
 	}
 	

@@ -40,8 +40,8 @@ class EffectTests: XCTestCase {
 	func testShouldTrackSignalAndComputedChanges() {
 		// Given
 		@Ref var number = 1
-		let double = Computed { number * 2 }
-		let fakeHandler = FakeEffectHandler { _ = double.value }
+		@Derived var double = number * 2
+		let fakeHandler = FakeEffectHandler { _ = double }
 		let effect = Effect(handler: fakeHandler.handler)
 		effectsStore = [effect]
 		
@@ -69,8 +69,8 @@ class EffectTests: XCTestCase {
 	func testShouldNotTrigger_whenComputedChangeRedundant() {
 		// Given
 		@Ref var number = 1
-		let computed = Computed { number < 10 }
-		let fakeHandler = FakeEffectHandler { _ = computed.value }
+		@Derived var computed = number < 10
+		let fakeHandler = FakeEffectHandler { _ = computed }
 		let effect = Effect(handler: fakeHandler.handler)
 		effectsStore = [effect]
 		
@@ -102,14 +102,14 @@ class EffectTests: XCTestCase {
 		// Given
 		@Ref var flag = true
 		@Ref var number = 1
-		let computed1 = Computed { "Deadpool" }
+		@Derived var computed = "Deadpool"
 		let fakeHandler = FakeEffectHandler {
-			_ = "\(flag) \(number) \(computed1.value)"
+			_ = "\(flag) \(number) \(computed)"
 		}
 		effectsStore = [Effect(handler: fakeHandler.handler)]
 		XCTAssertEqual($flag.observerCount, 1, "computed should track source 1")
 		XCTAssertEqual($number.observerCount, 1, "computed should track source 2")
-		XCTAssertEqual(computed1.observerCount, 1, "computed should track source 3")
+		XCTAssertEqual($computed.observerCount, 1, "computed should track source 3")
 		
 		// When
 		effectsStore = []
@@ -117,7 +117,7 @@ class EffectTests: XCTestCase {
 		// Then
 		XCTAssertEqual($flag.observerCount, 0, "effect should untrack source 1")
 		XCTAssertEqual($number.observerCount, 0, "effect should untrack source 2")
-		XCTAssertEqual(computed1.observerCount, 0, "effect should untrack source 3")
+		XCTAssertEqual($computed.observerCount, 0, "effect should untrack source 3")
 	}
 	
 	func testShouldNotTrackUnreachableSignals() {
@@ -165,7 +165,7 @@ class EffectTests: XCTestCase {
 	func testShouldMultipleEffectsTrackSameSource() {
 		// Given
 		@Ref var number = 1
-		@Derived(handler: {number + number }) var double: Int
+		@Derived var double: Int = number + number
 		let fakeHandler1 = FakeEffectHandler { _ = double }
 		let effect1 = Effect(handler: fakeHandler1.handler)
 		let fakeHandler2 = FakeEffectHandler { _ = double }
@@ -189,8 +189,7 @@ class EffectTests: XCTestCase {
 	func testShouldMultipleEffectsUnTrackSameSource() {
 		// Given
 		@Ref var number = 1
-		let computed = Computed { number * 2 }
-		@Derived(computed: computed) var double: Int
+		@Derived var double: Int = number * 2
 		effectsStore = [
 			Effect { _ = double },
 			Effect { _ = double },

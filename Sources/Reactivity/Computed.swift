@@ -67,6 +67,7 @@ public final class Computed<ComputedValue: Hashable> {
 	
 #if DEBUG
 	internal var observerCount: Int { observers.count }
+	internal var sourceCount: Int { sources.count }
 #endif
 }
 
@@ -138,6 +139,10 @@ private extension Computed {
 	private let computed: Computed<T>
 	
 	public init(handler: @escaping () -> T) {
+		self.computed = Computed(handler: handler)
+	}
+	
+	public init(wrappedValue handler: @autoclosure @escaping () -> T) {
 		self.computed = Computed(handler: handler)
 	}
 	
