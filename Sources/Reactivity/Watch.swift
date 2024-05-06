@@ -13,12 +13,25 @@ public class Watch<WatchedValue: Hashable> {
 	private var currentValue: WatchedValue
 	private let reactiveValue: any ReactiveValue<WatchedValue>
 	
-	public convenience init(_ signal: Signal<WatchedValue>, handler: @escaping (WatchedValue, WatchedValue) -> Void) {
+	public convenience init(
+		_ signal: Signal<WatchedValue>,
+		handler: @escaping (WatchedValue, WatchedValue) -> Void
+	) {
 		self.init(value: signal, handler: handler)
 	}
 	
-	public convenience init(_ computed: Computed<WatchedValue>, handler: @escaping (WatchedValue, WatchedValue) -> Void) {
+	public convenience init(
+		_ computed: Computed<WatchedValue>,
+		handler: @escaping (WatchedValue, WatchedValue) -> Void
+	) {
 		self.init(value: computed, handler: handler)
+	}
+	
+	public convenience init(
+		_ computedHandler: @autoclosure @escaping () -> WatchedValue,
+		handler: @escaping (WatchedValue, WatchedValue) -> Void
+	) {
+		self.init(value: Computed(handler: computedHandler), handler: handler)
 	}
 	
 	private init(value reactiveValue: any ReactiveValue<WatchedValue>, handler: @escaping (WatchedValue, WatchedValue) -> Void) {
