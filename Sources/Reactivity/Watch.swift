@@ -49,7 +49,7 @@ public class Watch<WatchedValue: Hashable> {
 
 extension Watch: Observer {
 	func onNotify(sourceChanged: Bool) {
-		guard shouldTrigger() else { return }
+		guard sourceChanged || shouldTrigger() else { return }
 		
 		let newValue = reactiveValue.value
 		handler(newValue, currentValue)
